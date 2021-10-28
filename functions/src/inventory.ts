@@ -1,118 +1,10 @@
 import {https} from "firebase-functions";
 import { INVENTORY_COLL_NAME } from "./utils";
-import { addDoc, collection, CollectionReference, doc, DocumentData, DocumentSnapshot, Firestore, FirestoreDataConverter, QueryDocumentSnapshot, SnapshotOptions, updateDoc } from "@firebase/firestore";
+import { addDoc, collection, CollectionReference, doc, DocumentData, Firestore, getDocs, updateDoc } from "@firebase/firestore";
 import { getDoc } from "firebase/firestore";
+import { ItemModel } from "./models/ItemModel";
 
 /** Functions used for HTTPS requests on the /inventory collection. */
-
-////////////////////////////////// DATA /////////////////////////////////////
-
-/** Default item data to use if any field isn't passed into the body of a POST request. */
-class ItemModel  {
-    constructor(
-        private description: string = 'Empty Description',
-        private id: number = -1,
-        private imageUrl: string = 'No image URL provided',
-        private name: string = 'Empty Name',
-        private price: number = -1,
-        private quantity: number = -1,
-    ) {
-        
-    }
-
-    public get Quantity(): number {
-        return this.quantity;
-    }
-    public set Quantity(value: number) {
-        this.quantity = value;
-    }
-    public get Price(): number {
-        return this.price;
-    }
-    public set Price(value: number) {
-        this.price = value;
-    }
-    public get Name(): string {
-        return this.name;
-    }
-    public set Name(value: string) {
-        this.name = value;
-    }
-    public get ImageUrl(): string {
-        return this.imageUrl;
-    }
-    public set ImageUrl(value: string) {
-        this.imageUrl = value;
-    }
-    public get Id(): number {
-        return this.id;
-    }
-    public set Id(value: number) {
-        this.id = value;
-    }
-    public get Description(): string {
-        return this.description;
-    }
-    public set Description(value: string) {
-        this.description = value;
-    }
-
-    public static get dbConverter():FirestoreDataConverter<ItemModel> {
-        return ItemModel.mDbConverter;
-    }
-
-    public update(description: string | undefined, id: number | undefined, imageUrl: string | undefined, name: string | undefined,
-                    price: number | undefined, quantity: number | undefined,) {
-                        if (description != undefined) {
-                            this.Description = description;
-                        }
-                        if (id != undefined) {
-                            this.Id = id;
-                        }
-                        if (imageUrl != undefined) {
-                            this.ImageUrl = imageUrl;
-                        }
-                        if (name != undefined) {
-                            this.Name = name;
-                        }
-                        if (price != undefined) {
-                            this.Price = price;
-                        }
-                        if (quantity != undefined) {
-                            this.Quantity = quantity;
-                        }
-    }
-
-
-};
-
-class mDbConverter implements FirestoreDataConverter<ItemModel> {
-    toFirestore(item: ItemModel): DocumentData {
-         return {
-            description: item.Description, 
-            id: item.Id,
-            imageUrl: item.ImageUrl,
-            name: item.Name,
-            price: item.Price,
-            quantity: item.Quantity,
-        };
-    }
-    fromFirestore(
-      snapshot: QueryDocumentSnapshot,
-      options: SnapshotOptions
-    ): ItemModel {
-      const data = snapshot.data(options)!;
-      return new ItemModel(data.description, data.id, data.imageUrl, data.name, data.price, data.quantity);
-    }
-
-    fromFirestore2(
-        snapshot: DocumentSnapshot<DocumentData>,
-        options: SnapshotOptions
-      ): ItemModel {
-        const data = snapshot.data(options)!;
-        return new ItemModel(data.description, data.id, data.imageUrl, data.name, data.price, data.quantity);
-      }
-  };
 
 const ITEM_ID_PARAM = 'itemId';
 
@@ -152,6 +44,11 @@ function getItem(request: https.Request, response: any) {
     }
 }
 
+async function getAllItems(request: https.Request, response: any) {
+    const itemDocs = await getDocs(INVENTORY_COLL_REF);
+    response.send(itemDocs.docs.map(doc => doc.data()));
+}
+
 /** Updates all user fields passed into the body of the Request.  */
 async function createItem(request: https.Request, response: any) {
 
@@ -183,7 +80,7 @@ async function createItem(request: https.Request, response: any) {
 async function updateItem(request: https.Request, response: any) {
     const itemId = request.params[ITEM_ID_PARAM];
         const x = await getDoc(doc(INVENTORY_COLL_REF, itemId));
-        const item = ItemModel.dbConverter.fromFirestore(x);
+        const item = ItemModel.dbConverter.fromFirestoreDoc(x);
         //(await getDoc(doc(INVENTORY_COLL_REF, itemId))).data()!;
         item.update(
                     request.body.description,
@@ -196,7 +93,7 @@ async function updateItem(request: https.Request, response: any) {
 
         const updatedItem = ItemModel.dbConverter.toFirestore(item);
 
-        updateDoc(doc(INVENTORY_COLL_REF, itemId), updatedItem).then(value => {
+        updateDoc(doc(INVENTORY_COLL_REF, itemId), updatedItem).then(() => {
             const msg = `Successfully updated item document /${INVENTORY_COLL_NAME}/${itemId}`;
             console.log(msg);
             response.send(msg);
@@ -216,6 +113,7 @@ export function applyRouting(expressApps: Map<string, any>) {
     app.get(`/:${ITEM_ID_PARAM}`, getItem);
     app.put(`/:${ITEM_ID_PARAM}`, updateItem);
     app.post(`/`, createItem);
+    app.get('/functions/getAllItems', getAllItems);
 }
 
 export function registerDB(app: Firestore) {

@@ -7,6 +7,7 @@ import * as users from "./users";
 import * as tests from "./tests"
 import * as inventory from './inventory'
 import { INVENTORY_COLL_NAME, TESTS_APP_NAME, USERS_COLL_NAME } from "./utils";
+import { getFirestore } from "@firebase/firestore";
 
 //require('dotenv').config()
 
@@ -32,6 +33,10 @@ expressApps.forEach((val, key) => {
     // Automatically allow cross-origin requests
     val.use(cors({ origin: true }));
 });
+
+//Register the db for all apps
+const db = getFirestore();
+inventory.registerDB(db);
 
 // Apply routing for all the apps
 tests.applyRouting(expressApps);

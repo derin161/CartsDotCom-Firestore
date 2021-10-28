@@ -118,23 +118,24 @@ async function updateUserHistory(request: https.Request, response: any){
 
 }
 
-/** Sends a response to containing the JSON document in the users collection
+/** Sends a response to containing the JSON document in the users order collection
  *  with the given ID=request.params.uid */
  async function getUserHistory(request: https.Request, response: any) {
+
     try {
         console.log("User get request with uid = " + request.params.uid);
-        var user = await firestore().collection(USERS_COLL_NAME).doc(request.params.uid).get();
+        const userHistorySnapShot = await firestore().collection('users').doc(request.params.uid).collection("orders").get();
 
         var msg;
-        if (!!!user) {
+        if (!!!userHistorySnapShot) {
             msg = 'User with uid = ' + request.params.uid + ' not found';
         } else {
-            msg = user.data();
+            msg = userHistorySnapShot.docs.map(doc => doc.data());
 
         }
 
         response.send(msg);
-        console.log("Successfully sent user data.");
+        console.log("Successfully get user history data.");
     } catch (error) {
         console.log(error);
         response.send("Error getting user data with uid = " + request.params.uid); //Be sure to end func call otherwise it may incur additional charges for not ending
@@ -148,6 +149,8 @@ export function applyRouting(expressApps: Map<string, any>) {
     app.put('/:uid', updateUser);
     app.post('/:uid', createUser);
     app.put('/:uid/orders', updateUserHistory);
+    app.get('/:uid/orders', getUserHistory);
+
 }
 
 ///////////////////////////////// END FUNCTIONS ///////////////////////////////////

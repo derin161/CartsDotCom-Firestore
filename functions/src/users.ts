@@ -118,12 +118,36 @@ async function updateUserHistory(request: https.Request, response: any){
 
 }
 
+/** Sends a response to containing the JSON document in the users collection
+ *  with the given ID=request.params.uid */
+ async function getUserHistory(request: https.Request, response: any) {
+    try {
+        console.log("User get request with uid = " + request.params.uid);
+        var user = await firestore().collection(USERS_COLL_NAME).doc(request.params.uid).get();
+
+        var msg;
+        if (!!!user) {
+            msg = 'User with uid = ' + request.params.uid + ' not found';
+        } else {
+            msg = user.data();
+
+        }
+
+        response.send(msg);
+        console.log("Successfully sent user data.");
+    } catch (error) {
+        console.log(error);
+        response.send("Error getting user data with uid = " + request.params.uid); //Be sure to end func call otherwise it may incur additional charges for not ending
+    }
+}
+
 export function applyRouting(expressApps: Map<string, any>) {
     const app = expressApps.get(USERS_COLL_NAME);
     app.post('/:uid/orders', updateUserHistory);
     app.get('/:uid', getUser);
     app.put('/:uid', updateUser);
     app.post('/:uid', createUser);
+    app.put('/:uid/orders', updateUserHistory);
 }
 
 ///////////////////////////////// END FUNCTIONS ///////////////////////////////////

@@ -6,6 +6,8 @@ import { firestore } from "firebase-admin";
 
 export const USERS_COLL_NAME = 'users';
 export const TESTS_APP_NAME = 'tests';
+export const ORDERS_COLL_NAME = 'orders';
+export const INVENTORY_COLL_NAME = 'inventory';
 
 ///////////////////////////////// END DATA /////////////////////////////////
 

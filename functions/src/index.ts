@@ -5,7 +5,8 @@ import * as cors from "cors";
 import { initializeApp } from "firebase/app";
 import * as users from "./users";
 import * as tests from "./tests"
-import { TESTS_APP_NAME, USERS_COLL_NAME } from "./utils";
+import * as inventory from './inventory'
+import { INVENTORY_COLL_NAME, TESTS_APP_NAME, USERS_COLL_NAME } from "./utils";
 
 //require('dotenv').config()
 
@@ -24,6 +25,7 @@ initializeApp({
 const expressApps:Map<string, any> = new Map([
     [TESTS_APP_NAME, express()],
     [USERS_COLL_NAME, express()],
+    [INVENTORY_COLL_NAME, express()],
 ]);
 
 expressApps.forEach((val, key) => {
@@ -34,6 +36,7 @@ expressApps.forEach((val, key) => {
 // Apply routing for all the apps
 tests.applyRouting(expressApps);
 users.applyRouting(expressApps);
+inventory.applyRouting(expressApps);
 
 // Listen for requests
 expressApps.forEach((val, key) => {

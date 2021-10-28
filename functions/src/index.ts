@@ -3,10 +3,11 @@ import * as express from "express";
 import * as admin from "firebase-admin";
 import * as cors from "cors";
 import { initializeApp } from "firebase/app";
-import { getUser, updateUser, createUser } from "./users";
+import * as users from "./users";
+import * as tests from "./tests"
+import { TESTS_APP_NAME, USERS_COLL_NAME } from "./utils";
 
-const app = express();
-
+//require('dotenv').config()
 
 admin.initializeApp();
 //TODO load from file
@@ -20,20 +21,21 @@ initializeApp({
     measurementId: "G-B1DQRGWYM6"
 });
 
-/////////////// APP ROUTING /////////////////////////////
+const expressApps:Map<string, any> = new Map([
+    [TESTS_APP_NAME, express()],
+    [USERS_COLL_NAME, express()],
+]);
 
-// Automatically allow cross-origin requests
-app.use(cors({ origin: true }));
+expressApps.forEach((val, key) => {
+    // Automatically allow cross-origin requests
+    val.use(cors({ origin: true }));
+});
 
+// Apply routing for all the apps
+tests.applyRouting(expressApps);
+users.applyRouting(expressApps);
 
-//User routes
-app.get('/users/:uid', getUser);
-app.put('/users/:uid', updateUser);
-app.post('/users/:uid', createUser);
-
-
-///////////////////////////////////////////////////////////////
-
-exports.api = functions.https.onRequest(app);
-
-
+// Listen for requests
+expressApps.forEach((val, key) => {
+    exports[key] = functions.https.onRequest(val);
+});

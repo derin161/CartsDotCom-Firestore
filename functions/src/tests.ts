@@ -1,4 +1,5 @@
 import * as functions from "firebase-functions";
+import { TESTS_APP_NAME } from "./utils";
 
 /** These functions are used for testing connection to a Firebase function server. */
 
@@ -15,5 +16,11 @@ export const ping = functions.https.onRequest((request, response) => {
     functions.logger.info("Hello logs! Ping test call with num = " + request.params.num + ".", { structuredData: true });
     response.send("You pinged me with path param num = " + request.params.num);
 });
+
+export function applyRouting(expressApps: Map<string, any>) {
+    
+    expressApps.get(TESTS_APP_NAME).get('/ping/:num', ping);
+    expressApps.get(TESTS_APP_NAME).get('/helloWorld/', helloWorld);
+}
 
 ///////////////////////////////////////////////////////////////

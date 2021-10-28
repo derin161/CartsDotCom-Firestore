@@ -1,7 +1,14 @@
-import {https} from "firebase-functions";
 import { firestore } from "firebase-admin";
 
 /** Utility functions that may be used by other functions serving HTTPS requests on Cloud Firestore. */
+
+///////////////////////////////// DATA /////////////////////////////////////
+
+export const USERS_COLL_NAME = 'users';
+export const TESTS_APP_NAME = 'tests';
+
+///////////////////////////////// END DATA /////////////////////////////////
+
 
 ///////// FUNCTIONS /////////////////////////////////////////////////////
 
@@ -33,14 +40,6 @@ export async function updateDocMapField(doc: firestore.DocumentReference<firesto
         await doc.update(update);
     }
 }
-
-/** TODO
- * Update all the value of the model object given a request with the objects in the request body.
- */
-export function updateAllValues(model:any, request:https.Request) {
-
-}
-
 
 /** Converts a map from Firestore to a typescript map. */
 export function getMappedValues(map:any): Map<any,any> {

@@ -5,7 +5,6 @@ import { OrderModel } from "./models/OrderModel";
 import { UserModel } from "./models/UserModel";
 import { StandardRequests } from "./StandardRequests";
 
-
 /** Functions used for HTTPS requests on the /users collection. */
 
 ////////////////////////////////// DATA /////////////////////////////////////

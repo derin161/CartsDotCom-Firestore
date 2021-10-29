@@ -8,6 +8,7 @@ import * as tests from "./tests"
 import * as inventory from './inventory'
 import { INVENTORY_COLL_NAME, TESTS_APP_NAME, USERS_COLL_NAME } from "./utils";
 import { getFirestore } from "@firebase/firestore";
+import { StandardRequests } from "./StandardRequests";
 
 //require('dotenv').config()
 
@@ -37,6 +38,7 @@ expressApps.forEach((val, key) => {
 //Register the db for all apps
 const db = getFirestore();
 inventory.registerDB(db);
+StandardRequests.Instance.registerDB(db);
 
 // Apply routing for all the apps
 tests.applyRouting(expressApps);

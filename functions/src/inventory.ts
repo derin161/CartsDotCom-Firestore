@@ -6,6 +6,9 @@ import { ItemModel } from "./models/ItemModel";
 
 /** Functions used for HTTPS requests on the /inventory collection. */
 
+////////////////////////////////// DATA /////////////////////////////////////
+
+
 const ITEM_ID_PARAM = 'itemId';
 
 var INVENTORY_COLL_REF:CollectionReference<DocumentData>;
@@ -19,7 +22,10 @@ var INVENTORY_COLL_REF:CollectionReference<DocumentData>;
  *  with the given ID = request.params[ITEM_ID_PARAM], or an error message if an error occurs. */
 async function getItem(request: https.Request, response: any) {
     const itemId = request.params[ITEM_ID_PARAM];
+
     console.log(`Processing ${request.method} request to /${INVENTORY_COLL_NAME}/${itemId}...`);
+    console.log(request.route);
+    console.log(request.path);
 
     var responseMsg:DocumentData|string = `Error getting /${INVENTORY_COLL_NAME}/${itemId}`;
     try {

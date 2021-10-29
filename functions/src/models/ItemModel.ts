@@ -3,7 +3,7 @@ import { https } from "firebase-functions/v1";
 import { DataModel } from "./DataModel";
 import { DataModelConverter } from "./DataModelConverter";
 
-/** Default item data to use if any field isn't passed into the body of a POST request. */
+/** Class to model item data. */
 export class ItemModel extends DataModel  {
 
     private static converter:DataModelConverter<ItemModel> = {
@@ -16,13 +16,13 @@ export class ItemModel extends DataModel  {
             options: SnapshotOptions
         ): ItemModel {
             const data = snapshot.data(options)!;
-            return new ItemModel(snapshot.id, data.description, data.imageUrl, data.name, data.price, data.quantity);
+            return new ItemModel( data.description, data.imageUrl, data.name, data.price, data.quantity, snapshot.id);
         },
 
         fromFirestoreDoc(
             snapshot: DocumentSnapshot<DocumentData>): ItemModel {
             const data = snapshot.data()!;
-            return new ItemModel(snapshot.id, data.description, data.imageUrl, data.name, data.price, data.quantity);
+            return new ItemModel( data.description, data.imageUrl, data.name, data.price, data.quantity, snapshot.id);
         },
 
         fromHTTPRequest: function (request: https.Request): ItemModel {
@@ -37,12 +37,12 @@ export class ItemModel extends DataModel  {
     };
 
     constructor(
-        id:string = 'Empty Id',
         private description: string = 'Empty Description',
         private imageUrl: string = 'No image URL provided',
         private name: string = 'Empty Name',
         private price: number = -1,
         private quantity: number = -1,
+        id:string = 'Empty Id',
     ) {
         super(id);
     }

@@ -1,17 +1,16 @@
 import {https} from "firebase-functions";
-import { firestore } from "firebase-admin";
-import { getFirestore, doc, setDoc, } from "firebase/firestore";
-import { ORDERS_COLL_NAME, updateDocMapField, updateDocSimpleField, USERS_COLL_NAME } from "./utils";
+import { StandardRequests } from "./StandardRequests";
+import { USERS_COLL_NAME } from "./utils";
+import { UserModel } from "./models/UserModel";
+import { Firestore } from "@firebase/firestore";
+
 
 /** Functions used for HTTPS requests on the /users collection. */
 
 ////////////////////////////////// DATA /////////////////////////////////////
 
-/** Default user data to use if any field isn't passed into the body of a POST request. */
-const userDefaultData = {
-    firstName: 'John',
-    lastName: 'Doe',
-};
+
+const USER_ID_PARAM = 'uid';
 
 ////////////////////////////////// END DATA /////////////////////////////////////
 
@@ -21,56 +20,47 @@ const userDefaultData = {
 /** Sends a response to containing the JSON document in the users collection
  *  with the given ID=request.params.uid */
 async function getUser(request: https.Request, response: any) {
-    try {
-        console.log("User get request with uid = " + request.params.uid);
-        var userData = await firestore().collection(USERS_COLL_NAME).doc(request.params.uid).get();
-
-        var msg;
-        if (!!!userData) {
-            msg = 'User with uid = ' + request.params.uid + ' not found'; //fix
-        } else {
-            msg = userData.data();
-
-        }
-
-        response.send(msg);
-        console.log("Successfully sent user data.");
-    } catch (error) {
-        console.log(error);
-        response.send("Error getting user data with uid = " + request.params.uid); //Be sure to end func call otherwise it may incur additional charges for not ending
-    }
+    StandardRequests.Instance.get(request, response, USERS_COLL_NAME, UserModel.Converter);
 }
 
 /** Updates all user fields passed into the body of the Request.  */
 async function updateUser(request: https.Request, response: any) {
+    // const uid = request.params[USER_ID_PARAM];
+    // console.log(`Processing ${request.method} request to /${INVENTORY_COLL_NAME}/${uid}`);
+    // var responseMsg:string = `Error updating item.`;
 
-    try {
-        console.log("User update request with uid = " + request.params.uid + ' from ' + request.ip);
-        console.log(JSON.stringify(request.body), request.body)
-        var userDoc = firestore().collection(USERS_COLL_NAME).doc(request.params.uid);
-        
-        updateDocSimpleField(userDoc, 'firstName', request.body.firstName);
-        updateDocSimpleField(userDoc, 'lastName', request.body.lastName);
+    // try {
+    //     const itemDoc = await getDoc(doc(INVENTORY_COLL_REF, uid));
+    //     const item = ItemModel.Converter.fromFirestoreDoc(itemDoc);
+    //     item.updateFromHTTPRequest(request);
+    //     const updatedItem = ItemModel.Converter.toFirestore(item);
 
-        response.send("Successful write to user.");
-        console.log("Successfully sent user data to " + request.ip);
-    } catch (error) {
-        console.log(error);
-        response.send("Error writing to user.");
-    }
+    //     await updateDoc(doc(INVENTORY_COLL_REF, uid), updatedItem);
+
+    //     responseMsg = `Successfully updated item document /${INVENTORY_COLL_NAME}/${uid}`;
+    //     console.log(responseMsg);
+    // } catch (error) {
+    //     console.log(error);
+    // } finally {
+    //     response.send(responseMsg); //Be sure to end func call otherwise it may incur additional charges for not ending
+    // }
 }
 
 /** Creates a user with the given fields in the body of the request, and sets any fields not occurring in the Request.body to a default value. */
 async function createUser(request: https.Request, response: any) {
+    // console.log(`Processing ${request.method} request to /${USERS_COLL_NAME}...`);
+    // var responseMsg: string = `Error creating user.`;
 
-    try {
-        console.log("User create req with uid = " + request.params.uid + ' from ' + request.ip);
-        var userDoc = doc(getFirestore(), USERS_COLL_NAME, request.params.uid); //need to use getFirestore() instead of db because of some typing issue
-        await setDoc(userDoc, userDefaultData).then(() => {updateUser(request, response)});
-    } catch (error) {
-        console.log(error);
-        response.send("Error creating user."); //Be sure to end func call otherwise it may incur additional charges for not ending
-    }
+    // const user = UserModel.Converter.fromHTTPRequest(request);
+    // try {
+    //     const userDoc = await addDoc(USERS_COLL_REF, user);
+    //     responseMsg = `Successfully created user document /${USERS_COLL_NAME}/${userDoc.id}`;
+    //     console.log(responseMsg);
+    // } catch (error) {
+    //     console.log(error);
+    // } finally {
+    //     response.send(responseMsg); //Be sure to end func call otherwise it may incur additional charges for not ending
+    // }
 }
 
 /*
@@ -88,57 +78,59 @@ async function createUser(request: https.Request, response: any) {
 */
 async function updateUserHistory(request: https.Request, response: any){
 
-    const uid = request.params.uid;
-    const food_id = request.body.food_id;
+    // const uid = request.params.uid;
+    // const food_id = request.body.food_id;
 
-    try{
-        //Add a new order to the orders subcollection in a specific user document. Order ID autogenerated.
-        await firestore().collection(USERS_COLL_NAME).doc(uid).collection(ORDERS_COLL_NAME).add({
-            time: Date.now(),
-            food_id,
-        });
-        console.log("Updated order history successfully.")
-        response.send(`Order history updated successfully.`)
-    }catch(error){
-        console.log(`Error updating order history: ${error}`);
-        response.end(); 
-    }
+    // try{
+    //     //Add a new order to the orders subcollection in a specific user document. Order ID autogenerated.
+    //     await firestore().collection(USERS_COLL_NAME).doc(uid).collection(ORDERS_COLL_NAME).add({
+    //         time: Date.now(),
+    //         food_id,
+    //     });
+    //     console.log("Updated order history successfully.")
+    //     response.send(`Order history updated successfully.`)
+    // }catch(error){
+    //     console.log(`Error updating order history: ${error}`);
+    //     response.end(); 
+    // }
 
 
 }
 
 /** Sends a response to containing the JSON document in the users order collection
  *  with the given ID=request.params.uid */
- async function getUserHistory(request: https.Request, response: any) {
+//  async function getUserHistory(request: https.Request, response: any) {
 
-    try {
-        console.log("User order get request with uid = " + request.params.uid);
-        const userHistorySnapShot = await firestore().collection(USERS_COLL_NAME).doc(request.params.uid).collection(ORDERS_COLL_NAME).get();
+//     try {
+//         console.log("User order get request with uid = " + request.params.uid);
+//         const userHistorySnapShot = await firestore().collection(USERS_COLL_NAME).doc(request.params.uid).collection(ORDERS_COLL_NAME).get();
 
-        var msg;
-        if (!!!userHistorySnapShot) {
-            msg = 'User with uid = ' + request.params.uid + ' not found';
-        } else {
-            msg = userHistorySnapShot.docs.map(doc => doc.data());
+//         var msg;
+//         if (!!!userHistorySnapShot) {
+//             msg = 'User with uid = ' + request.params.uid + ' not found';
+//         } else {
+//             msg = userHistorySnapShot.docs.map(doc => doc.data());
 
-        }
+//         }
 
-        response.send(msg);
-        console.log("Successfully get user history data.");
-    } catch (error) {
-        console.log(error);
-        response.send("Error getting user data with uid = " + request.params.uid); //Be sure to end func call otherwise it may incur additional charges for not ending
-    }
-}
+//         response.send(msg);
+//         console.log("Successfully get user history data.");
+//     } catch (error) {
+//         console.log(error);
+//         response.send("Error getting user data with uid = " + request.params.uid); //Be sure to end func call otherwise it may incur additional charges for not ending
+//     }
+// }
 
 export function applyRouting(expressApps: Map<string, any>) {
     const app = expressApps.get(USERS_COLL_NAME);
-    app.post('/:uid/orders', updateUserHistory);
-    app.get('/:uid', getUser);
-    app.put('/:uid', updateUser);
-    app.post('/:uid', createUser);
-    app.put('/:uid/orders', updateUserHistory);
-    app.get('/:uid/orders', getUserHistory);
+    app.post(`/:${USER_ID_PARAM}/orders`, updateUserHistory);
+    app.get(`/:${USER_ID_PARAM}`, getUser);
+    app.put(`/:${USER_ID_PARAM}`, updateUser);
+    app.post(`/:${USER_ID_PARAM}`, createUser);
+}
+
+export function registerDB(app: Firestore) {
+    //USERS_COLL_REF = collection(app, USERS_COLL_NAME).withConverter(UserModel.Converter);
 
 }
 

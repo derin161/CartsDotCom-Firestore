@@ -76,10 +76,10 @@ async function createItem(request: https.Request, response: any) {
 
 /** Updates all user fields passed into the body of the Request.  */
 async function updateItem(request: https.Request, response: any) {
+    const itemId = request.params[ITEM_ID_PARAM];
     console.log(`Processing ${request.method} request to /${INVENTORY_COLL_NAME}/${itemId}`);
     var responseMsg:string = `Error updating item.`;
 
-    const itemId = request.params[ITEM_ID_PARAM];
     try {
         const itemDoc = await getDoc(doc(INVENTORY_COLL_REF, itemId));
         const item = ItemModel.Converter.fromFirestoreDoc(itemDoc);

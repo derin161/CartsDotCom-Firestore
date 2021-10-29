@@ -1,7 +1,7 @@
 import {https} from "firebase-functions";
 import { firestore } from "firebase-admin";
 import { getFirestore, doc, setDoc, } from "firebase/firestore";
-import { ORDERS_COLL_NAME, updateDocMapField, updateDocSimpleField, USERS_COLL_NAME } from "./utils";
+import { ORDERS_COLL_NAME, updateDocSimpleField, USERS_COLL_NAME } from "./utils";
 
 /** Functions used for HTTPS requests on the /users collection. */
 

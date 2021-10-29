@@ -1,32 +1,50 @@
 import { DocumentData, DocumentSnapshot, QueryDocumentSnapshot, SnapshotOptions } from "@firebase/firestore";
+import { https } from "firebase-functions/v1";
 import { DataModel } from "./DataModel";
 import { DataModelConverter } from "./DataModelConverter";
 
 /** Default item data to use if any field isn't passed into the body of a POST request. */
 export class ItemModel extends DataModel  {
-    fromFirebaseDocument(data: DocumentData): DataModel {
-        return new ItemModel(data.description, data.id, data.imageUrl, data.name, data.price, data.quantity);
-    }
-    public getFirebaseObject() {
-        return {
-            description: this.description, 
-            id: this.id,
-            imageUrl: this.imageUrl,
-            name: this.name,
-            price: this.price,
-            quantity: this.quantity,
-        };
-    }
+
+    private static mDbConverter:DataModelConverter<ItemModel> = {
+        toFirestore(item: ItemModel): DocumentData {
+            return item.getFirebaseObject();
+        },
+
+        fromFirestore(
+            snapshot: QueryDocumentSnapshot,
+            options: SnapshotOptions
+        ): ItemModel {
+            const data = snapshot.data(options)!;
+            return new ItemModel(snapshot.id, data.description, data.imageUrl, data.name, data.price, data.quantity);
+        },
+
+        fromFirestoreDoc(
+            snapshot: DocumentSnapshot<DocumentData>): ItemModel {
+            const data = snapshot.data()!;
+            return new ItemModel(snapshot.id, data.description, data.imageUrl, data.name, data.price, data.quantity);
+        },
+
+        fromHTTPRequest: function (request: https.Request): ItemModel {
+            return new ItemModel(
+                request.body.description,
+                request.body.imageUrl,
+                request.body.name,
+                request.body.price,
+                request.body.quantity,
+            );
+        }
+    };
 
     constructor(
+        id:string = 'Empty Id',
         private description: string = 'Empty Description',
-        private id: number = -1,
         private imageUrl: string = 'No image URL provided',
         private name: string = 'Empty Name',
         private price: number = -1,
         private quantity: number = -1,
     ) {
-        super();
+        super(id);
     }
 
     public get Quantity(): number {
@@ -53,12 +71,7 @@ export class ItemModel extends DataModel  {
     public set ImageUrl(value: string) {
         this.imageUrl = value;
     }
-    public get Id(): number {
-        return this.id;
-    }
-    public set Id(value: number) {
-        this.id = value;
-    }
+
     public get Description(): string {
         return this.description;
     }
@@ -70,40 +83,27 @@ export class ItemModel extends DataModel  {
         return ItemModel.mDbConverter;
     }
 
-    static mDbConverter:DataModelConverter<ItemModel> = {
-        toFirestore(item: ItemModel): DocumentData {
-            return {
-               description: item.Description, 
-               id: item.Id,
-               imageUrl: item.ImageUrl,
-               name: item.Name,
-               price: item.Price,
-               quantity: item.Quantity,
-           };
-       },
-       fromFirestore(
-         snapshot: QueryDocumentSnapshot,
-         options: SnapshotOptions
-       ): ItemModel {
-         const data = snapshot.data(options)!;
-         return new ItemModel(data.description, data.id, data.imageUrl, data.name, data.price, data.quantity);
-       },
-   
-       fromFirestoreDoc(
-           snapshot: DocumentSnapshot<DocumentData>): ItemModel {
-           const data = snapshot.data()!;
-           return new ItemModel(data.description, data.id, data.imageUrl, data.name, data.price, data.quantity);
-         }
-    };
+    public getFirebaseObject() : DocumentData {
+        return {
+            description: this.description,
+            imageUrl: this.imageUrl,
+            name: this.name,
+            price: this.price,
+            quantity: this.quantity,
+        };
+    }
 
-    public update(description: string | undefined, id: number | undefined, imageUrl: string | undefined, name: string | undefined,
-                    price: number | undefined, quantity: number | undefined,) {
+    public updateFromHTTPRequest(request: https.Request) {
+        const description = request.body.description;
+        const imageUrl = request.body.imageUrl;
+        const name = request.body.name;
+        const price = request.body.price;
+        const quantity = request.body.quantity;
+
                         if (description != undefined) {
                             this.Description = description;
                         }
-                        if (id != undefined) {
-                            this.Id = id;
-                        }
+
                         if (imageUrl != undefined) {
                             this.ImageUrl = imageUrl;
                         }

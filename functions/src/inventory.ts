@@ -52,14 +52,7 @@ async function getAllItems(request: https.Request, response: any) {
 /** Updates all user fields passed into the body of the Request.  */
 async function createItem(request: https.Request, response: any) {
 
-    const item = new ItemModel(
-                    request.body.description,
-                    request.body.id,
-                    request.body.imageUrl,
-                    request.body.name,
-                    request.body.price,
-                    request.body.quantity,
-                );
+    const item = ItemModel.dbConverter.fromHTTPRequest(request);
         
         addDoc(INVENTORY_COLL_REF, item).then(value => {
             const msg = `Successfully created item document /${INVENTORY_COLL_NAME}/${value.id}`;
@@ -79,20 +72,11 @@ async function createItem(request: https.Request, response: any) {
 /** Updates all user fields passed into the body of the Request.  */
 async function updateItem(request: https.Request, response: any) {
     const itemId = request.params[ITEM_ID_PARAM];
-        const x = await getDoc(doc(INVENTORY_COLL_REF, itemId));
-        const item = ItemModel.dbConverter.fromFirestoreDoc(x);
-        //(await getDoc(doc(INVENTORY_COLL_REF, itemId))).data()!;
-        item.update(
-                    request.body.description,
-                    request.body.id,
-                    request.body.imageUrl,
-                    request.body.name,
-                    request.body.price,
-                    request.body.quantity,        
-        );
+        const itemDoc = await getDoc(doc(INVENTORY_COLL_REF, itemId));
+        const item = ItemModel.dbConverter.fromFirestoreDoc(itemDoc);
 
+        item.updateFromHTTPRequest(request);
         const updatedItem = ItemModel.dbConverter.toFirestore(item);
-
         updateDoc(doc(INVENTORY_COLL_REF, itemId), updatedItem).then(() => {
             const msg = `Successfully updated item document /${INVENTORY_COLL_NAME}/${itemId}`;
             console.log(msg);

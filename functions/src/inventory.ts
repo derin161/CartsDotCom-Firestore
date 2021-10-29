@@ -15,81 +15,86 @@ var INVENTORY_COLL_REF:CollectionReference<DocumentData>;
 
 ///////// FUNCTIONS /////////////////////////////////////////////////////
 
-/** Sends a response to containing the JSON document in the users collection
- *  with the given ID = request.params[ITEM_ID_PARAM] */
-function getItem(request: https.Request, response: any) {
+/** Sends a response containing the JSON document in the inventory collection
+ *  with the given ID = request.params[ITEM_ID_PARAM], or an error message if an error occurs. */
+async function getItem(request: https.Request, response: any) {
     const itemId = request.params[ITEM_ID_PARAM];
     console.log(`Processing ${request.method} request to /${INVENTORY_COLL_NAME}/${itemId}...`);
+
     var responseMsg:DocumentData|string = `Error getting /${INVENTORY_COLL_NAME}/${itemId}`;
     try {
-        getDoc(doc(INVENTORY_COLL_REF, itemId)).then(value => {
-            // fulfillment
-            const docData = value.data();
-            if (docData != undefined) { //document exists
-                responseMsg = docData;
-                console.log(`Successfully sent /${INVENTORY_COLL_NAME}/${itemId}.`);
-            } else {
-                responseMsg = `/${INVENTORY_COLL_NAME}/${itemId} not found`;
-                console.log(responseMsg);
-            }
-            response.send(responseMsg);
-          }, reason => {
-            // rejection
-            console.log(reason);
-            response.send(responseMsg);
-          });
+        const itemDoc = await getDoc(doc(INVENTORY_COLL_REF, itemId));
+        if (itemDoc.exists()) { 
+            responseMsg = itemDoc.data();
+            console.log(`Successfully sent /${INVENTORY_COLL_NAME}/${itemId}.`);
+        } else {
+            responseMsg = `/${INVENTORY_COLL_NAME}/${itemId} not found`;
+            console.log(responseMsg);
+        }
     } catch (error) {
         console.log(error);
+        //Response already has an error message
+    } finally {
         response.send(responseMsg); //Be sure to end func call otherwise it may incur additional charges for not ending
     }
 }
 
 async function getAllItems(request: https.Request, response: any) {
-    const itemDocs = await getDocs(INVENTORY_COLL_REF);
-    response.send(itemDocs.docs.map(doc => doc.data()));
+    console.log(`Processing ${request.method} request to /${INVENTORY_COLL_NAME}/functions/getAllItems...`);
+
+    var responseMsg: string | DocumentData[] = `No items found in ${INVENTORY_COLL_NAME}.`;
+
+    try {
+        const itemDocs = await getDocs(INVENTORY_COLL_REF);
+        if (!itemDocs.empty) {
+            responseMsg = itemDocs.docs.map(doc => doc.data());
+        }
+    } catch (error) {
+        console.log(error);
+        responseMsg = `Error processing ${request.method} request to /${INVENTORY_COLL_NAME}/functions/getAllItems.`;
+    } finally {
+        response.send(responseMsg); //Be sure to end func call otherwise it may incur additional charges for not ending
+    }
 }
 
 /** Updates all user fields passed into the body of the Request.  */
 async function createItem(request: https.Request, response: any) {
+    console.log(`Processing ${request.method} request to /${INVENTORY_COLL_NAME}...`);
+    var responseMsg: string = `Error creating item.`;
 
-    const item = ItemModel.dbConverter.fromHTTPRequest(request);
-        
-        addDoc(INVENTORY_COLL_REF, item).then(value => {
-            const msg = `Successfully created item document /${INVENTORY_COLL_NAME}/${value.id}`;
-            console.log(msg);
-            response.send(msg);
-          }, reason => {
-            // rejection
-            console.log(reason);
-            response.send(`Error creating item.`);
-          })
-          .catch(error => {
-            console.log(error);
-            response.send(`Error creating item.`);
-          });
+    const item = ItemModel.Converter.fromHTTPRequest(request);
+    try {
+        const itemDoc = await addDoc(INVENTORY_COLL_REF, item);
+        responseMsg = `Successfully created item document /${INVENTORY_COLL_NAME}/${itemDoc.id}`;
+        console.log(responseMsg);
+    } catch (error) {
+        console.log(error);
+    } finally {
+        response.send(responseMsg); //Be sure to end func call otherwise it may incur additional charges for not ending
+    }
 }
 
 /** Updates all user fields passed into the body of the Request.  */
 async function updateItem(request: https.Request, response: any) {
-    const itemId = request.params[ITEM_ID_PARAM];
-        const itemDoc = await getDoc(doc(INVENTORY_COLL_REF, itemId));
-        const item = ItemModel.dbConverter.fromFirestoreDoc(itemDoc);
+    console.log(`Processing ${request.method} request to /${INVENTORY_COLL_NAME}/${itemId}`);
+    var responseMsg:string = `Error updating item.`;
 
+    const itemId = request.params[ITEM_ID_PARAM];
+    try {
+        const itemDoc = await getDoc(doc(INVENTORY_COLL_REF, itemId));
+        const item = ItemModel.Converter.fromFirestoreDoc(itemDoc);
         item.updateFromHTTPRequest(request);
-        const updatedItem = ItemModel.dbConverter.toFirestore(item);
-        updateDoc(doc(INVENTORY_COLL_REF, itemId), updatedItem).then(() => {
-            const msg = `Successfully updated item document /${INVENTORY_COLL_NAME}/${itemId}`;
-            console.log(msg);
-            response.send(msg);
-          }, reason => {
-            // rejection
-            console.log(reason);
-            response.send(`Error updating item.`);
-          })
-          .catch(error => {
-            console.log(error);
-            response.send(`Error updating item.`);
-          });
+        const updatedItem = ItemModel.Converter.toFirestore(item);
+
+        await updateDoc(doc(INVENTORY_COLL_REF, itemId), updatedItem);
+
+        responseMsg = `Successfully updated item document /${INVENTORY_COLL_NAME}/${itemId}`;
+        console.log(responseMsg);
+    } catch (error) {
+        console.log(error);
+    } finally {
+        response.send(responseMsg); //Be sure to end func call otherwise it may incur additional charges for not ending
+    }
 }
 
 export function applyRouting(expressApps: Map<string, any>) {
@@ -101,7 +106,7 @@ export function applyRouting(expressApps: Map<string, any>) {
 }
 
 export function registerDB(app: Firestore) {
-    INVENTORY_COLL_REF = collection(app, INVENTORY_COLL_NAME).withConverter(ItemModel.dbConverter);
+    INVENTORY_COLL_REF = collection(app, INVENTORY_COLL_NAME).withConverter(ItemModel.Converter);
 }
 
 ///////////////////////////////// END FUNCTIONS ///////////////////////////////////

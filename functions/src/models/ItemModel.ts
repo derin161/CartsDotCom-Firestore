@@ -6,7 +6,7 @@ import { DataModelConverter } from "./DataModelConverter";
 /** Default item data to use if any field isn't passed into the body of a POST request. */
 export class ItemModel extends DataModel  {
 
-    private static mDbConverter:DataModelConverter<ItemModel> = {
+    private static converter:DataModelConverter<ItemModel> = {
         toFirestore(item: ItemModel): DocumentData {
             return item.getFirebaseObject();
         },
@@ -79,8 +79,8 @@ export class ItemModel extends DataModel  {
         this.description = value;
     }
 
-    public static get dbConverter():DataModelConverter<ItemModel> {
-        return ItemModel.mDbConverter;
+    public static get Converter():DataModelConverter<ItemModel> {
+        return ItemModel.converter;
     }
 
     public getFirebaseObject() : DocumentData {

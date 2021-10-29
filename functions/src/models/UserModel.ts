@@ -6,31 +6,29 @@ import { DataModelConverter } from "./DataModelConverter";
 
 /** Class to model user data. */
 export class UserModel extends DataModel  {
+    public static getModel(data: any, docId:string|undefined = undefined): UserModel {
+        return new UserModel(
+            data.firstName,
+            data.lastName,
+            docId
+        );
+    }
 
     private static converter:DataModelConverter<UserModel> = {
         toFirestore(item: UserModel): DocumentData {
             return item.getFirebaseObject();
         },
 
-        fromFirestore(
-            snapshot: QueryDocumentSnapshot,
-            options: SnapshotOptions
-        ): UserModel {
-            const data = snapshot.data(options)!;
-            return new UserModel(data.firstName, data.lastName, snapshot.id);
+        fromFirestore(snapshot: QueryDocumentSnapshot, options: SnapshotOptions): UserModel {
+            return UserModel.getModel(snapshot.data(options)!, snapshot.id);
         },
 
-        fromFirestoreDoc(
-            snapshot: DocumentSnapshot<DocumentData>): UserModel {
-            const data = snapshot.data()!;
-            return new UserModel(data.firstName, data.lastName, snapshot.id);
+        fromFirestoreDoc(snapshot: DocumentSnapshot<DocumentData>): UserModel {
+            return UserModel.getModel(snapshot.data()!, snapshot.id);
         },
 
         fromHTTPRequest: function (request: https.Request): UserModel {
-            return new UserModel(
-                request.body.firstName,
-                request.body.lastName,
-            );
+            return UserModel.getModel(request.body);
         }
     };
 
@@ -44,11 +42,11 @@ export class UserModel extends DataModel  {
     constructor(
         private firstName: string = 'Empty First Name',
         private lastName: string = 'Empty Last Name',
-        uid:string = 'Empty Id',
+        uid:string|undefined = undefined, //Defaulting to undefined keeps single point of control over default value in DataModel class
     ) {
         super(uid);
 
-        if (uid != 'Empty Id') {
+        if (uid != undefined) {
            UserModel.getUserEmail(uid)
             .then(value => { this.email = value});
         }
@@ -85,9 +83,9 @@ export class UserModel extends DataModel  {
         };
     }
 
-    public updateFromHTTPRequest(request: https.Request) {
-        const firstName = request.body.firstName;
-        const lastName = request.body.lastName;
+    public updateFromData(data: any) {
+        const firstName = data.firstName;
+        const lastName = data.lastName;
 
         if (firstName != undefined) {
             this.FirstName = firstName;

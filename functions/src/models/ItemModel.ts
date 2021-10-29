@@ -11,28 +11,16 @@ export class ItemModel extends DataModel  {
             return item.getFirebaseObject();
         },
 
-        fromFirestore(
-            snapshot: QueryDocumentSnapshot,
-            options: SnapshotOptions
-        ): ItemModel {
-            const data = snapshot.data(options)!;
-            return new ItemModel( data.description, data.imageUrl, data.name, data.price, data.quantity, snapshot.id);
+        fromFirestore(snapshot: QueryDocumentSnapshot, options: SnapshotOptions): ItemModel {
+            return ItemModel.getModel(snapshot.data(options)!, snapshot.id);
         },
 
-        fromFirestoreDoc(
-            snapshot: DocumentSnapshot<DocumentData>): ItemModel {
-            const data = snapshot.data()!;
-            return new ItemModel( data.description, data.imageUrl, data.name, data.price, data.quantity, snapshot.id);
+        fromFirestoreDoc(snapshot: DocumentSnapshot<DocumentData>): ItemModel {
+            return ItemModel.getModel(snapshot.data()!, snapshot.id);
         },
 
         fromHTTPRequest: function (request: https.Request): ItemModel {
-            return new ItemModel(
-                request.body.description,
-                request.body.imageUrl,
-                request.body.name,
-                request.body.price,
-                request.body.quantity,
-            );
+            return ItemModel.getModel(request.body);
         }
     };
 
@@ -42,7 +30,7 @@ export class ItemModel extends DataModel  {
         private name: string = 'Empty Name',
         private price: number = -1,
         private quantity: number = -1,
-        id:string = 'Empty Id',
+        id:string|undefined = undefined, //Defaulting to undefined keeps single point of control over default value in DataModel class
     ) {
         super(id);
     }
@@ -83,6 +71,18 @@ export class ItemModel extends DataModel  {
         return ItemModel.converter;
     }
 
+    public static getModel(data: any, docId:string|undefined = undefined) : ItemModel {
+        
+        return new ItemModel(
+            data.description,
+            data.imageUrl,
+            data.name,
+            data.price,
+            data.quantity,
+            docId,
+        );
+    }
+
     public getFirebaseObject() : DocumentData {
         return {
             description: this.description,
@@ -93,12 +93,12 @@ export class ItemModel extends DataModel  {
         };
     }
 
-    public updateFromHTTPRequest(request: https.Request) {
-        const description = request.body.description;
-        const imageUrl = request.body.imageUrl;
-        const name = request.body.name;
-        const price = request.body.price;
-        const quantity = request.body.quantity;
+    public updateFromData(data: any) {
+        const description = data.description;
+        const imageUrl = data.imageUrl;
+        const name = data.name;
+        const price = data.price;
+        const quantity = data.quantity;
 
                         if (description != undefined) {
                             this.Description = description;

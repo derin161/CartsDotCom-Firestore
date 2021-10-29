@@ -23,9 +23,12 @@ export function getMappedValues(map:any): Map<any,any> {
     return tempMap;
 }
 
-export function getCollectionFromPath(db:Firestore, fullPath:string) : CollectionReference<DocumentData> {
+export function getCollectionFromPath(db:Firestore, fullPath:string, pathEndsWithDocId: boolean) : CollectionReference<DocumentData> {
     //trim off doc id
-    const collPath = fullPath.substring(0, fullPath.lastIndexOf('/'));
+    var collPath = fullPath;
+    if (pathEndsWithDocId) {
+        collPath = collPath.substring(0, fullPath.lastIndexOf('/'));
+    }
     return collection(db, collPath);
 }
 

@@ -6,9 +6,10 @@ import { DataModelConverter } from "./DataModelConverter";
 /** Class to model item data. */
 export class ItemModel extends DataModel  {
 
+    /** Adapter used to exchange ItemModel objects with other forms. */
     private static converter:DataModelConverter<ItemModel> = {
         toFirestore(item: ItemModel): DocumentData {
-            return item.getFirebaseObject();
+            return item.toFirestoreJSON();
         },
 
         fromFirestore(snapshot: QueryDocumentSnapshot, options: SnapshotOptions): ItemModel {
@@ -19,11 +20,47 @@ export class ItemModel extends DataModel  {
             return ItemModel.getModel(snapshot.data()!, snapshot.id);
         },
 
-        fromHTTPRequest: function (request: https.Request): ItemModel {
+        fromHTTPRequest (request: https.Request): ItemModel {
             return ItemModel.getModel(request.body);
+        },
+
+        fromHTTPResponse (response: any): ItemModel {
+            return ItemModel.getModel(response, response[DataModel.ID_FIELD_NAME]);
         }
     };
 
+    private static readonly DESRIPTION_FIELD_NAME:string = 'description';
+    private static readonly IMAGE_URL_FIELD_NAME:string = 'imageUrl';
+    private static readonly NAME_FIELD_NAME:string = 'name';
+    private static readonly PRICE_FIELD_NAME:string = 'price';
+    private static readonly QUANTITY_FIELD_NAME:string = 'quantity';
+    
+    /** Returns a ItemModel object with the given docId (or DataModel.DEFAULT_ID_ARG if left undefined) 
+     * and the properties from data matching those in the ItemModel.
+     * 
+     * @param data the data sharing properties with the ItemModel to extract data from
+     * @param docId the id to use with this ItemModel
+     * @returns a ItemModel object with the given docId (or DataModel.DEFAULT_ID_ARG) and the properties from data
+     * matching those in the ItemModel
+     */
+    public static getModel(data: any, docId:string|undefined = undefined) : ItemModel {
+        const item = new ItemModel(
+            data[ItemModel.DESRIPTION_FIELD_NAME],
+            data[ItemModel.IMAGE_URL_FIELD_NAME],
+            data[ItemModel.NAME_FIELD_NAME],
+            data[ItemModel.PRICE_FIELD_NAME],
+            data[ItemModel.QUANTITY_FIELD_NAME],
+            docId,
+        );
+        return item;
+    }
+
+    /** The adapter used to convert ItemModel to other forms. */
+    public static get Converter():DataModelConverter<ItemModel> {
+        return ItemModel.converter;
+    }
+
+    /** Builds a ItemModel object with the given properties. */
     constructor(
         private description: string = 'Empty Description',
         private imageUrl: string = 'No image URL provided',
@@ -35,6 +72,58 @@ export class ItemModel extends DataModel  {
         super(id);
     }
 
+    public getStandardJSON() : any {
+        var json:any = {};
+
+        json[ItemModel.DESRIPTION_FIELD_NAME] = this.description;
+        json[ItemModel.IMAGE_URL_FIELD_NAME] = this.imageUrl;
+        json[ItemModel.NAME_FIELD_NAME] = this.name;
+        json[ItemModel.PRICE_FIELD_NAME] = this.price;
+        json[ItemModel.QUANTITY_FIELD_NAME] = this.quantity;
+
+        return json;
+    }
+
+    public toResponseJSON() : any {
+        var json:any = this.getStandardJSON();
+        
+        json[DataModel.ID_FIELD_NAME] = this.id;
+
+        return json;
+    }
+
+    public toFirestoreJSON() : DocumentData {
+        var json:any = this.getStandardJSON();
+        
+        return json;
+    }
+
+    public updateFromData(data: any) {
+        const description = data[ItemModel.DESRIPTION_FIELD_NAME];
+        const imageUrl = data[ItemModel.IMAGE_URL_FIELD_NAME];
+        const name = data[ItemModel.NAME_FIELD_NAME];
+        const price = data[ItemModel.PRICE_FIELD_NAME];
+        const quantity = data[ItemModel.QUANTITY_FIELD_NAME];
+
+        if (description != undefined) {
+            this.description = description;
+        }
+
+        if (imageUrl != undefined) {
+            this.imageUrl = imageUrl;
+        }
+        if (name != undefined) {
+            this.name = name;
+        }
+        if (price != undefined) {
+            this.price = price;
+        }
+        if (quantity != undefined) {
+            this.quantity = quantity;
+        }
+    }
+
+    
     public get Quantity(): number {
         return this.quantity;
     }
@@ -67,59 +156,4 @@ export class ItemModel extends DataModel  {
         this.description = value;
     }
 
-    public static get Converter():DataModelConverter<ItemModel> {
-        return ItemModel.converter;
-    }
-
-    public static getModel(data: any, docId:string|undefined = undefined) : ItemModel {
-        
-        return new ItemModel(
-            data.description,
-            data.imageUrl,
-            data.name,
-            data.price,
-            data.quantity,
-            docId,
-        );
-    }
-
-    public getFirebaseObject() : DocumentData {
-        return {
-            description: this.description,
-            imageUrl: this.imageUrl,
-            name: this.name,
-            price: this.price,
-            quantity: this.quantity,
-        };
-    }
-
-    public updateFromData(data: any) {
-        const description = data.description;
-        const imageUrl = data.imageUrl;
-        const name = data.name;
-        const price = data.price;
-        const quantity = data.quantity;
-
-                        if (description != undefined) {
-                            this.Description = description;
-                        }
-
-                        if (imageUrl != undefined) {
-                            this.ImageUrl = imageUrl;
-                        }
-                        if (name != undefined) {
-                            this.Name = name;
-                        }
-                        if (price != undefined) {
-                            this.Price = price;
-                        }
-                        if (quantity != undefined) {
-                            this.Quantity = quantity;
-                        }
-    }
-
-
 };
-
-
-

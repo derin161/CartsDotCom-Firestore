@@ -1,19 +1,20 @@
 import * as functions from "firebase-functions";
-import * as express from "express";
 import * as admin from "firebase-admin";
-import * as cors from "cors";
 import { initializeApp } from "firebase/app";
-import * as users from "./users";
-import * as tests from "./tests"
-import * as inventory from './inventory'
-import { INVENTORY_COLL_NAME, TESTS_APP_NAME, USERS_COLL_NAME } from "./utils";
 import { getFirestore } from "@firebase/firestore";
-import { StandardRequests } from "./StandardRequests";
+import { ServerApp } from "./apps/ServerApp";
+import { UsersApp } from "./apps/UsersApp";
+import { TestsApp } from "./apps/TestsApp";
+import { DBSingleton } from "./DBSingleton";
+import { InventoryApp } from "./apps/InventoryApp";
 
-//require('dotenv').config()
-
-admin.initializeApp();
+/* Initialize admin SDK, requires environment GOOGLE_APPLICATION_CREDENTIALS to be
+set to the path of the JSON document containing the admin SDK key. 
+DO NOT EXPOSE PUBLICLY */
+admin.initializeApp(); 
 //TODO load from file
+
+/** Initialize client SDK */
 initializeApp({
     apiKey: "AIzaSyBwgrf6zn_-T03NHA8iHywlRRCwnmfkLDg",
     authDomain: "cartsdotcom.firebaseapp.com",
@@ -24,28 +25,11 @@ initializeApp({
     measurementId: "G-B1DQRGWYM6"
 });
 
-const expressApps:Map<string, any> = new Map([
-    [TESTS_APP_NAME, express()],
-    [USERS_COLL_NAME, express()],
-    [INVENTORY_COLL_NAME, express()],
-]);
-
-expressApps.forEach((val, key) => {
-    // Automatically allow cross-origin requests
-    val.use(cors({ origin: true }));
-});
-
-//Register the db for all apps
-const db = getFirestore();
-inventory.registerDB(db);
-StandardRequests.Instance.registerDB(db);
-
-// Apply routing for all the apps
-tests.applyRouting(expressApps);
-users.applyRouting(expressApps);
-inventory.applyRouting(expressApps);
+const db = getFirestore(); //initialize db
+DBSingleton.Instance.registerDB(db);
+const expressApps:ServerApp[] = [new InventoryApp(), new UsersApp(), new TestsApp()];
 
 // Listen for requests
-expressApps.forEach((val, key) => {
-    exports[key] = functions.https.onRequest(val);
+expressApps.forEach((serverApp) => {
+    exports[serverApp.AppName] = functions.https.onRequest(serverApp.App);
 });

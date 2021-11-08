@@ -8,7 +8,7 @@ import { TestsApp } from "./apps/TestsApp";
 import { DBSingleton } from "./DBSingleton";
 import { InventoryApp } from "./apps/InventoryApp";
 
-/* Initialize admin SDK, requires environment GOOGLE_APPLICATION_CREDENTIALS to be
+/* Initialize admin SDK, requires environment var GOOGLE_APPLICATION_CREDENTIALS to be
 set to the path of the JSON document containing the admin SDK key. 
 DO NOT EXPOSE PUBLICLY */
 admin.initializeApp(); 

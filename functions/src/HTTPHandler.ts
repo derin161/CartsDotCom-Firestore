@@ -67,4 +67,21 @@ export class HTTPHandler {
         }
     }
 
+    /** Makes an HTTP GET request to the given url, returning a Promise containing the response.
+     * 
+     * @param url the url to GET
+     * @returns a Promise containing a DataModel from the GET request, or an Error message if one occurs
+     */
+     public async httpPostASync(url : string, data: any) : Promise<any> {
+        var response = 'Error';
+        try {
+            response = await axios.default.post(url, data);
+            console.log(response);
+        } catch (error) {
+            console.error(error);
+        } finally {
+            return response;
+        }
+    }
+
 }

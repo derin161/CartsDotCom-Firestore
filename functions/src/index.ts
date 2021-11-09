@@ -7,6 +7,7 @@ import { UsersApp } from "./apps/UsersApp";
 import { TestsApp } from "./apps/TestsApp";
 import { DBSingleton } from "./DBSingleton";
 import { InventoryApp } from "./apps/InventoryApp";
+import { OrderProcessingApp } from "./apps/OrderProcessingApp";
 
 /* Initialize admin SDK, requires environment var GOOGLE_APPLICATION_CREDENTIALS to be
 set to the path of the JSON document containing the admin SDK key. 
@@ -27,9 +28,12 @@ initializeApp({
 
 const db = getFirestore(); //initialize db
 DBSingleton.Instance.registerDB(db);
-const expressApps:ServerApp[] = [new InventoryApp(), new UsersApp(), new TestsApp()];
+const expressApps:ServerApp[] = [new InventoryApp(), new UsersApp(), new TestsApp(), new OrderProcessingApp()];
 
 // Listen for requests
 expressApps.forEach((serverApp) => {
     exports[serverApp.AppName] = functions.https.onRequest(serverApp.App);
 });
+
+//schedule batch order processing
+exports.scheduledOrderProcess = OrderProcessingApp.batchProccessOrders;

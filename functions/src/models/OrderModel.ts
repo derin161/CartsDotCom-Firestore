@@ -1,5 +1,7 @@
 import { DocumentData, DocumentSnapshot, QueryDocumentSnapshot, SnapshotOptions } from "@firebase/firestore";
 import { https } from "firebase-functions/v1";
+import { HTTPHandler } from "../HTTPHandler";
+import { BASE_REQUEST_URL, INVENTORY_COLL_NAME } from "../utils";
 import { DataModel } from "./DataModel";
 import { DataModelConverter } from "./DataModelConverter";
 import { ItemModel } from "./ItemModel";
@@ -21,7 +23,16 @@ export class OrderModel extends DataModel  {
             return OrderModel.getModel(snapshot.data()!, snapshot.id);
         },
 
-        fromHTTPRequest (request: https.Request): OrderModel {
+        async fromHTTPRequest (request: https.Request): Promise<OrderModel> {
+            const itemIds: any[] = request.body[OrderModel.ITEMS_ORDERED_FIELD_NAME];
+            const itemsData: any[] = [];
+            for (const itemId of itemIds) {
+                const url = `${BASE_REQUEST_URL}/${INVENTORY_COLL_NAME}/${itemId}`;
+                const item = await HTTPHandler.Instance.httpGetDataModelAsync(url, ItemModel.Converter);
+                itemsData.push(item.toResponseJSON());
+            }
+
+            request.body[OrderModel.ITEMS_ORDERED_FIELD_NAME] = itemsData;
             return OrderModel.getModel(request.body);
         },
 

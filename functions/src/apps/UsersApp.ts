@@ -9,7 +9,6 @@ import { ServerApp } from "./ServerApp";
 export class UsersApp extends ServerApp {
     private static readonly USER_ID_PARAM = 'uid';
     private static readonly ORDER_ID_PARAM = 'oid';
-
     /** Sends a response containing the JSON document in the /users collection. 
      * 
      * @param request the incoming http request, with path param USER_ID_PARAM being the id of the requested user doc

@@ -8,7 +8,7 @@ export const INVENTORY_COLL_NAME = 'inventory';
 export const ORDERS_COLL_NAME = 'orders';
 export const USERS_COLL_NAME = 'users';
 export const TESTS_APP_NAME = 'tests';
-export const BASE_REQUEST_URL = 'http://localhost:5001/cartsdotcom/us-central1';
+export const BASE_REQUEST_URL = 'https://us-central1-cartsdotcom.cloudfunctions.net';
 export const FUNCTIONS_ROUTING_NAME = 'functions';
 export const ORDER_PROCESSING_APP_NAME = 'orderProcessing';
 

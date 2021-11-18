@@ -12,21 +12,22 @@ export class OrderProcessingApp extends ServerApp {
 
     private static ordersToProcess:any[] = []; 
 
-    public static batchProccessOrders = functions.pubsub.schedule('15 17 * * *')
-    .timeZone('America/New_York')
+    public static batchProccessOrders = functions.pubsub.schedule('every 5 minutes')
     .onRun((context) => {
         console.log('Running scheduled batchProcessOrders.');
-        OrderProcessingApp.processAllOrders();
+        HTTPHandler.Instance.httpGetASync(`${BASE_REQUEST_URL}/${ORDER_PROCESSING_APP_NAME}/${FUNCTIONS_ROUTING_NAME}/manualTrigger/`);
         return null;
     });
 
     private static processAllOrders() {
         console.log('Running batchProcessOrders.');
-
+        console.log(OrderProcessingApp.ordersToProcess);
         OrderProcessingApp.ordersToProcess.forEach(order => {
+            console.log(order);
             OrderProcessingApp.postUserOrder(order[OrderProcessingApp.USER_ID_PARAM], order[OrderProcessingApp.ORDER_DATA_FIELD_NAME]);
         });
         OrderProcessingApp.ordersToProcess = [];
+        console.log(OrderProcessingApp.ordersToProcess);
         console.log('Finished batchProcessOrders.');
     }
 

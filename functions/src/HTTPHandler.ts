@@ -67,10 +67,11 @@ export class HTTPHandler {
         }
     }
 
-    /** Makes an HTTP GET request to the given url, returning a Promise containing the response.
+    /** Makes an HTTP POST request to the given url, returning a Promise containing the response.
      * 
-     * @param url the url to GET
-     * @returns a Promise containing a DataModel from the GET request, or an Error message if one occurs
+     * @param url the url to POST
+     * @param data the body of the http POST request
+     * @returns a Promise containing the response, or an Error message if one occurs
      */
      public async httpPostASync(url : string, data: any) : Promise<any> {
         var response = 'Error';

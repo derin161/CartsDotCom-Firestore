@@ -29,7 +29,7 @@ export class ItemModel extends DataModel  {
         }
     };
 
-    private static readonly DESRIPTION_FIELD_NAME:string = 'description';
+    private static readonly DESCRIPTION_FIELD_NAME:string = 'description';
     private static readonly IMAGE_URL_FIELD_NAME:string = 'imageUrl';
     private static readonly NAME_FIELD_NAME:string = 'name';
     private static readonly PRICE_FIELD_NAME:string = 'price';
@@ -45,7 +45,7 @@ export class ItemModel extends DataModel  {
      */
     public static getModel(data: any, docId:string|undefined = undefined) : ItemModel {
         const item = new ItemModel(
-            data[ItemModel.DESRIPTION_FIELD_NAME],
+            data[ItemModel.DESCRIPTION_FIELD_NAME],
             data[ItemModel.IMAGE_URL_FIELD_NAME],
             data[ItemModel.NAME_FIELD_NAME],
             data[ItemModel.PRICE_FIELD_NAME],
@@ -75,7 +75,7 @@ export class ItemModel extends DataModel  {
     public getStandardJSON() : any {
         var json:any = {};
 
-        json[ItemModel.DESRIPTION_FIELD_NAME] = this.description;
+        json[ItemModel.DESCRIPTION_FIELD_NAME] = this.description;
         json[ItemModel.IMAGE_URL_FIELD_NAME] = this.imageUrl;
         json[ItemModel.NAME_FIELD_NAME] = this.name;
         json[ItemModel.PRICE_FIELD_NAME] = this.price;
@@ -99,7 +99,7 @@ export class ItemModel extends DataModel  {
     }
 
     public updateFromData(data: any) {
-        const description = data[ItemModel.DESRIPTION_FIELD_NAME];
+        const description = data[ItemModel.DESCRIPTION_FIELD_NAME];
         const imageUrl = data[ItemModel.IMAGE_URL_FIELD_NAME];
         const name = data[ItemModel.NAME_FIELD_NAME];
         const price = data[ItemModel.PRICE_FIELD_NAME];
